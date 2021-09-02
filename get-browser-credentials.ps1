@@ -767,7 +767,7 @@ try {
     $nssdllhandle = [IntPtr]::Zero
 
     $mozillapaths = $(
-        "$env:HOMEDRIVE\Program Files\Mozilla Firefoxx",
+        "$env:HOMEDRIVE\Program Files\Mozilla Firefox",
         "$env:HOMEDRIVE\Program Files (x86)\Mozilla Firefox",
         "$env:HOMEDRIVE\Program Files\Nightly",
         "$env:HOMEDRIVE\Program Files (x86)\Nightly"
@@ -781,7 +781,7 @@ try {
         }
     }
 
-    if (Test-Path -path "$mozillapath") {
+    if ( ("$mozillapath" -ne "") -and (Test-Path -path "$mozillapath") ) {
         $nss3dll = "$mozillapath\nss3.dll"
         $mozgluedll = "$mozillapath\mozglue.dll"
         $msvcr120dll = "$mozillapath\msvcr120.dll"
