@@ -923,7 +923,6 @@ function Read-FirefoxLogins {
     $_rows = [System.Collections.Generic.List[System.Collections.Generic.List[string]]]::new()
 
     $json = Get-Content "$path" | Out-String | ConvertFrom-Json
-    $UnprotectScope = [System.Security.Cryptography.DataProtectionScope]::CurrentUser
     foreach ($login in $json.logins) {
         $_item = @($login.hostname, "deuser err", "depass err", $login.formSubmitURL)
         try{
